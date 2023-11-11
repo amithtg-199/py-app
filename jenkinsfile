@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    options {
+    buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+    environment {
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                sh """
+                    #!/bin/bash
+                    git clone 'https://github.com/amithtg-199/py-app.git'
+                    cd /var/lib/jenkins/workspace/pythonapp/py-app
+                    docker build -t amithtg/py-app:"${env.BUILD_NUMBER}" .
+                    """
+                }
+            }
+
+        }
+        stage('docker_push') {
+            steps {
+                script {
+                    sh """
+                    #!/bin/bash
+                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    docker push amithtg/py-app:"${env.BUILD_NUMBER}"
+                    """
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    sh """
+                    #!/bin/bash
+                    ssh -i /var/lib/jenkins/my_pair.pem ubuntu@ec2-54-87-72-116.compute-1.amazonaws.com << EOF
+                    sed -i 's|amithtg/py-app.*|amithtg/py-app:${env.BUILD_NUMBER}|g' deployment.yaml
+                    kubectl apply -f deployment.yaml
+                    kubectl patch svc pyapp-service -p '{"spec":{"externalIPs":["10.10.1.208"]}}'
+                    exit 0
+                    << EOF
+                    """
+                }
+            }
+        }
+    }
+        post {
+            always {
+                sh 'docker logout'
+                cleanWs notFailBuild: true
+               
+            }
+        }
+}
