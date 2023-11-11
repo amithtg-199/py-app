@@ -6,7 +6,7 @@ Django Sample project that allows registered users to edit their profile outside
 - 👉 [Django Bootstrap 5](https://appseed.us/product/volt-dashboard/django/) - the original starter
 - 🚀 Free [support](https://appseed.us/support/) via `Email` and `Discord` 
 
-<br />
+<br />xyz
 
 ### Features
 
