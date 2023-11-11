@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+     maxSurge: 2
+     maxUnavailable: 1
+  selector:
+    matchLabels:
+      name: app-pod
+  template:
+    metadata:
+      labels:
+        name: app-pod
+    spec:
+      containers:
+      - name: app-pod
+        image: amithtg/py-app:50
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: .2
+            memory: 1Gi
+          limits:
+            cpu: .5
+            memory: 2Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyapp-service
+  labels:
+    name: pyapp-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30004
+  selector:
+     name: app-pod
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-test
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app-deployment
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
