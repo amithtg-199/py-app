@@ -23,6 +23,7 @@ Django Sample project that allows registered users to edit their profile outside
 
 ## How to use it
 
+You can also follow steps provided in file Capstone_project_1 to deploy E2E Containerized solution running on K8s and monitored by Prometheus and Grafana 
 ```bash
 $ # Get the code
 $ git clone https://github.com/app-generator/sample-django-extended-user-profile.git
